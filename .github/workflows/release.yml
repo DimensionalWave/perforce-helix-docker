@@ -44,12 +44,12 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: ./helix-p4d
+          context: .
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            P4D_VERSION=2024.1-2661979
-            SWARM_VERSION=2024.5-2666202
+            P4D_VERSION=2024.2-2697822
+            SWARM_VERSION=2024.6-2710109
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max

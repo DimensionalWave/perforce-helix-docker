@@ -7,35 +7,27 @@ FROM ubuntu:focal
 LABEL vendor="Dimensional Wave Ltd"
 LABEL maintainer="Daniel McAssey (dan@glokon.me)"
 
+# --------------------------------------------------------------------------------
+# Docker Build
+# --------------------------------------------------------------------------------
+
+ARG P4D_VERSION="2024.2-2697822"
+ARG SWARM_VERSION="2024.6-2710109"
+
 # Update Ubuntu and add Perforce Package Source
-RUN apt-get update && \
-  apt-get install -y wget gnupg2 && \
-  wget -qO - https://package.perforce.com/perforce.pubkey | apt-key add - && \
-  echo "deb http://package.perforce.com/apt/ubuntu focal release" > /etc/apt/sources.list.d/perforce.list && \
-  apt-get update
-
-# --------------------------------------------------------------------------------
-# Docker BUILD
-# --------------------------------------------------------------------------------
-
-ARG P4D_VERSION="2024.1-2661979"
-ARG SWARM_VERSION="2024.5-2666202"
-
-# Create perforce user and install Perforce Server
 # Do in-page search over https://package.perforce.com/apt/ubuntu/dists/focal/release/binary-amd64/Packages
 # for both "Package: helix-p4d" and "Package: helix-swarm-triggers".
-RUN apt-get update && apt-get install -y helix-p4d=${P4D_VERSION}~focal helix-swarm-triggers=${SWARM_VERSION}~focal
-# Add external files
-COPY files/restore.sh /usr/local/bin/restore.sh
-COPY files/setup.sh /usr/local/bin/setup.sh
-COPY files/init.sh /usr/local/bin/init.sh
-COPY files/latest_checkpoint.sh /usr/local/bin/latest_checkpoint.sh
+RUN set -x && \
+    apt-get update && \
+    apt-get install --no-install-recommends -y wget gnupg2 && \
+    wget -qO - https://package.perforce.com/perforce.pubkey | apt-key add - && \
+    echo "deb http://package.perforce.com/apt/ubuntu focal release" > /etc/apt/sources.list.d/perforce.list && \
+    apt-get update && \
+    apt-get install --no-install-recommends -y helix-p4d=${P4D_VERSION}~focal helix-swarm-triggers=${SWARM_VERSION}~focal && \
+    rm -rf /var/cache/apt/archives /var/lib/apt/lists/*.
 
-RUN \
-  chmod +x /usr/local/bin/restore.sh && \
-  chmod +x /usr/local/bin/setup.sh && \
-  chmod +x /usr/local/bin/init.sh && \
-  chmod +x /usr/local/bin/latest_checkpoint.sh
+COPY scripts/* /usr/local/bin/
+RUN chmod +x /usr/local/bin/*.sh
 
 # --------------------------------------------------------------------------------
 # Docker ENVIRONMENT
@@ -77,9 +69,7 @@ VOLUME $P4HOME
 # Docker RUN
 # --------------------------------------------------------------------------------
 
-ENTRYPOINT \
-  init.sh && \
-  /usr/bin/tail -F $P4ROOT/logs/log
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 HEALTHCHECK \
   --interval=2m \

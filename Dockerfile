@@ -19,7 +19,7 @@ ARG SWARM_VERSION="2024.6-2710109"
 # for both "Package: helix-p4d" and "Package: helix-swarm-triggers".
 RUN set -x && \
     apt-get update && \
-    apt-get install --no-install-recommends -y wget gnupg2 && \
+    apt-get install --no-install-recommends -y wget gnupg2 ca-certificates && \
     wget -qO - https://package.perforce.com/perforce.pubkey | apt-key add - && \
     echo "deb http://package.perforce.com/apt/ubuntu focal release" > /etc/apt/sources.list.d/perforce.list && \
     apt-get update && \
